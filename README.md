@@ -1,14 +1,6 @@
 # mtrack-touchpad-MacBook-Pro-5.5
 mtrack config file MacBook Pro 5.5
 
-Perfecto 🙌
-Aquí tienes un **README en español** completamente claro y estructurado para ti — pensado para tu caso específico:
-**MX Linux 23 Fluxbox en un MacBook Pro 5,5**, con el driver **mtrack** y el daemon **dispad**, incluyendo instalación, configuración y cómo hacerlo funcionar desde el *startup* de Fluxbox.
-
-Lo puedes guardar directamente como `README_MTRACK_DISPAD.md` si quieres tenerlo a mano.
-
----
-
 # 🖱️ Configuración del Touchpad MacBook Pro 5,5 en MX Linux 23 Fluxbox
 
 ## Driver: mtrack + dispad
@@ -60,66 +52,166 @@ sudo nano /usr/share/X11/xorg.conf.d/50-mtrack.conf
 # Configuración optimizada del driver mtrack
 # para MacBook Pro 5,5 — MX Linux 23 Fluxbox
 # ===============================================
+# Versión revisada y comentada (por ChatGPT)
+# Basada en el tutorial original de int3ractive.com
+# y el README oficial del proyecto xf86-input-mtrack.
+#
+# Objetivo:
+#   - Movimiento fluido y natural del cursor
+#   - Desplazamiento (scroll) con dos dedos
+#   - Arrastre con tres dedos
+#   - Selección y arrastre en Thunar funcionando
+#   - Gestos básicos con buena estabilidad
+# ===============================================
 
 Section "InputClass"
-        MatchIsTouchpad "on"
-        Identifier      "Touchpads"
-        MatchDevicePath "/dev/input/event*"
-        Driver          "mtrack"
+    MatchIsTouchpad "on"
+    Identifier      "Touchpads"
+    MatchDevicePath "/dev/input/event*"
+    Driver          "mtrack"
 
-        # --- Movimiento y sensibilidad ---
-        Option "AccelerationProfile" "2"
-        Option "Sensitivity" "1.5"     # 1.0 = normal, 1.5 = fluido como macOS
+    # --------------------------------------------
+    # MOVIMIENTO DEL CURSOR
+    # --------------------------------------------
 
-        # --- Detección de dedos ---
-        Option "FingerHigh" "5"
-        Option "FingerLow"  "5"
-        Option "IgnoreThumb" "false"
-        Option "IgnorePalm" "true"
-        Option "PalmSize"   "30"
+    # Perfil de aceleración:
+    #  0 = lineal, 1 = simple, 2 = polinómico (más natural).
+    Option "AccelerationProfile" "1"
 
-        # --- Clics con toque ---
-        Option "TapButton1" "1"
-        Option "TapButton2" "3"
-        Option "TapButton3" "2"
-        Option "TapDragEnable" "true"
-        Option "TapDragTime" "350"
-        Option "TapDragWait" "40"
-        Option "TapDragDist" "200"
+    # Sensibilidad (velocidad del puntero)
+    # Valores recomendados:
+    #   0.5 = un poco más lenta que la predeterminada
+    #   1.0 = valor base recomendado
+    #   1.5 = rápida y fluida, parecida a macOS
+    #   2.0 = muy rápida (útil para pantallas grandes)
+    Option "Sensitivity" "1.5"
 
-        # --- Clic físico y arrastre ---
-        Option "ButtonIntegrated" "true"
-        Option "ButtonMoveEmulate" "true"
+    # --------------------------------------------
+    # DETECCIÓN DE DEDOS Y PRESIÓN
+    # --------------------------------------------
 
-        # --- Desplazamiento con dos dedos ---
-        Option "ScrollSmooth" "true"
-        Option "ScrollUpButton" "5"
-        Option "ScrollDownButton" "4"
-        Option "ScrollLeftButton" "7"
-        Option "ScrollRightButton" "6"
-        Option "ScrollDistance" "250"
+    # Presión mínima y máxima para detectar el toque
+    # Cuanto menor el número, más sensible.
+    Option "FingerHigh" "5"
+    Option "FingerLow"  "5"
 
-        # --- Gestos con tres dedos (arrastre macOS) ---
-        Option "SwipeDistance" "1"
-        Option "SwipeClickTime" "0"
-        Option "SwipeSensitivity" "1500"
-        Option "SwipeLeftButton" "1"
-        Option "SwipeRightButton" "1"
-        Option "SwipeUpButton" "1"
-        Option "SwipeDownButton" "1"
+    # Ignorar o no el pulgar
+    Option "IgnoreThumb" "false"
+    # Relación de aspecto del pulgar y tamaño
+    Option "ThumbRatio" "70"
+    Option "ThumbSize"  "25"
 
-        # --- Gestos con cuatro dedos (navegación) ---
-        Option "Swipe4LeftButton" "9"
-        Option "Swipe4RightButton" "8"
-        Option "Swipe4UpButton" "11"
-        Option "Swipe4DownButton" "10"
+    # Ignorar la palma si cubre parte del touchpad
+    Option "IgnorePalm" "true"
+    Option "PalmSize"   "30"
 
-        # --- Gestos de zoom (pinza) ---
-        Option "ScaleDistance" "300"
-        Option "ScaleUpButton" "12"
-        Option "ScaleDownButton" "13"
-        Option "RotateLeftButton" "0"
-        Option "RotateRightButton" "0"
+    # --------------------------------------------
+    # CLICS Y TOQUES
+    # --------------------------------------------
+
+    # Toques para clic:
+    # 1 dedo = clic izquierdo
+    # 2 dedos = clic derecho
+    # 3 dedos = clic central
+    Option "TapButton1" "1"
+    Option "TapButton2" "3"
+    Option "TapButton3" "2"
+    Option "TapButton4" "0"
+
+    # Duración del clic simulado en milisegundos
+    Option "ClickTime" "25"
+
+    # Desactiva arrastre por toque (preferimos tres dedos)
+    Option "TapDragEnable" "true"
+    
+    Option "TapDragTime" "350"
+    Option "TapDragWait" "40"
+    Option "TapDragDist" "200"
+
+    # Clic físico con dedos
+    Option "ClickFinger1" "1"
+    Option "ClickFinger2" "3"
+    Option "ClickFinger3" "2"
+
+    # --------------------------------------------
+    # ARRASTRE Y SELECCIÓN
+    # --------------------------------------------
+
+    # Emular movimiento con clic sostenido:
+    #   - "true" permite arrastrar para seleccionar archivos.
+    #   - "false" desactiva arrastre (lo que causa tu problema en Thunar).
+    Option "ButtonMoveEmulate" "true"
+
+    # Indica que el botón físico está integrado en el touchpad
+    Option "ButtonIntegrated" "true"
+
+    # --------------------------------------------
+    # DESPLAZAMIENTO (SCROLL)
+    # --------------------------------------------
+
+    # Duración e inercia del desplazamiento
+    Option "ScrollCoastDuration" "300"
+    Option "ScrollCoastEnableSpeed" ".1"
+
+    # Activar desplazamiento suave (natural)
+    Option "ScrollSmooth" "true"
+
+    # Botones virtuales para scroll vertical y horizontal
+    Option "ScrollUpButton" "5"
+    Option "ScrollDownButton" "4"
+    Option "ScrollLeftButton" "7"
+    Option "ScrollRightButton" "6"
+
+    # Distancia que debes mover los dedos para que el scroll se active
+    # Valores más altos = scroll más lento.
+    # Ejemplo:
+    #   150 = sensible y rápido
+    #   250 = desplazamiento natural
+    #   400 = desplazamiento más largo y preciso
+    Option "ScrollDistance" "250"
+
+    # --------------------------------------------
+    # GESTOS DE ARRASTRE Y DESLIZAMIENTO
+    # --------------------------------------------
+
+    # Arrastre con tres dedos (Swipe)
+    Option "SwipeDistance" "1"
+    Option "SwipeClickTime" "0"
+    Option "SwipeSensitivity" "1500"
+    Option "SwipeLeftButton" "1"
+    Option "SwipeRightButton" "1"
+    Option "SwipeUpButton" "1"
+    Option "SwipeDownButton" "1"
+
+    # Sensibilidad del gesto (mayor = más fácil de activar)
+    #   1000 = requiere más movimiento
+    #   1500 = sensible y natural
+    #   2000 = se activa con movimientos cortos
+    Option "SwipeSensitivity" "1500"
+
+    # Deslizamiento con cuatro dedos
+    # 8 y 9 corresponden a "atrás" y "adelante" en navegadores
+    Option "Swipe4LeftButton" "9"
+    Option "Swipe4RightButton" "8"
+
+    # Botones adicionales (para usar con xbindkeys y xdotool)
+    Option "Swipe4UpButton" "11"
+    Option "Swipe4DownButton" "10"
+
+    # --------------------------------------------
+    # GESTOS DE PINZA (ZOOM)
+    # --------------------------------------------
+
+    # Distancia para activar zoom (pinch)
+    #   Menor valor = zoom más sensible.
+    Option "ScaleDistance" "300"
+    Option "ScaleUpButton" "12"
+    Option "ScaleDownButton" "13"
+
+    # Desactiva rotación con dos dedos
+    Option "RotateLeftButton" "0"
+    Option "RotateRightButton" "0"
+
 EndSection
 ```
 
@@ -260,6 +352,4 @@ Reinicia tu sesión o tu equipo.
 * Adaptado y documentado para **MX Linux 23 Fluxbox – MacBook Pro 5,5**
 
 ---
-
-¿Quieres que te genere este README directamente como un archivo `.md` o `.pdf` (listo para imprimir o compartir)? Puedo hacerlo con formato limpio y encabezados visibles.
 
