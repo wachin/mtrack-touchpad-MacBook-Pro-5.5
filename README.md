@@ -13,25 +13,14 @@ mtrack config file MacBook Pro 5.5
 
 El driver **mtrack** sustituye a *libinput* o *synaptics* y permite una experiencia multitáctil avanzada, muy parecida a macOS.
 
-### 🔹 Instalar dependencias necesarias
+### 🔹 Instalar 
 
 ```bash
 sudo apt update
-sudo apt install build-essential git pkg-config libmtdev-dev mtdev-tools xserver-xorg-dev xutils-dev
+sudo apt install xserver-xorg-input-mtrack gedit
 ```
 
-### 🔹 Descargar y compilar mtrack
-
-```bash
-cd /tmp
-git clone https://github.com/p2rkw/xf86-input-mtrack.git
-cd xf86-input-mtrack
-./configure --with-xorg-module-dir=/usr/lib/xorg/modules
-make
-sudo make install
-```
-
-> 💡 Si aparece un error en la compilación, revisa el mensaje: normalmente indica una dependencia faltante. Instálala y vuelve a ejecutar `make`.
+Nota: Instalamos Gedit porque es facil de usar para tareas de terminal
 
 ---
 
@@ -42,7 +31,7 @@ El driver no funcionará hasta crear su archivo de configuración para Xorg.
 ### 🔹 Crear y abrir el archivo
 
 ```bash
-sudo nano /usr/share/X11/xorg.conf.d/50-mtrack.conf
+sudo gedit /usr/share/X11/xorg.conf.d/50-mtrack.conf
 ```
 
 ### 🔹 Pegar la siguiente configuración optimizada para MacBook Pro 5,5
