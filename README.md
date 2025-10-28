@@ -1,7 +1,7 @@
 # mtrack-touchpad-MacBook-Pro-5.5
 mtrack config file MacBook Pro 5.5
 
-# 🖱️ Configuración del Touchpad MacBook Pro 5,5 en MX Linux 23 Fluxbox
+# Configuración del Touchpad MacBook Pro 5,5 en MX Linux 23 Fluxbox
 
 ## Driver: mtrack + dispad
 
@@ -9,22 +9,89 @@ mtrack config file MacBook Pro 5.5
 
 ---
 
-## 📦 1. Instalación del driver mtrack
+## Instalación del driver mtrack
 
-El driver **mtrack** sustituye a *libinput* o *synaptics* y permite una experiencia multitáctil avanzada, muy parecida a macOS.
+El driver **mtrack** sustituye a *libinput (pues no funciona bien)* o *synaptics* y permite una experiencia multitáctil avanzada, muy parecida a macOS.
 
-### 🔹 Instalar 
+### Instalar
 
 ```bash
 sudo apt update
-sudo apt install xserver-xorg-input-mtrack gedit
+sudo apt install xserver-xorg-input-mtrack
 ```
 
-Nota: Instalamos Gedit porque es facil de usar para tareas de terminal
+Además recomiendo instalar Gedit porque es facil de usar para tareas de terminal:
+
+```bash
+sudo apt install gedit
+```
+---
+
+## Configurar el módulo del kernel `bcm5974`
+
+Este módulo del kernel es el encargado de **comunicar el hardware del touchpad con el sistema**.
+En algunos modelos antiguos de MacBook, el controlador introduce una **“zona muerta” (fuzz)** para evitar ruido táctil, lo que genera lentitud o pérdida de precisión.
+
+Para eliminar esa zona muerta:
+
+1. Crea (si no existe) el archivo `/etc/modprobe.d/bcm5974.conf`
+
+   ```bash
+   sudo nano /etc/modprobe.d/bcm5974.conf
+   ```
+2. Agrega dentro:
+
+   ```bash
+   options bcm5974 fuzz=0
+   ```
+3. Recarga el módulo:
+
+   ```bash
+   sudo modprobe -r bcm5974
+   sudo modprobe bcm5974
+   ```
+
+📘 **Explicación técnica:**
+El parámetro `fuzz=0` indica que **no se debe filtrar ninguna variación pequeña de posición táctil**, aumentando la precisión de los gestos.
+Sin este ajuste, el scroll con dos dedos y el tap doble pueden sentirse poco responsivos.
 
 ---
 
-## ⚙️ 2. Crear el archivo de configuración `mtrack`
+## Desactivar libinput para evitar conflictos
+
+Por defecto, Xorg carga **libinput**, que también intenta controlar el touchpad.
+Esto genera conflictos porque ambos drivers (libinput y mtrack) responden a los mismos eventos.
+
+Para evitarlo:
+
+1. Localiza el archivo:
+
+   ```
+   /etc/X11/xorg.conf.d/30-touchpad-libinput.conf
+   ```
+2. Renómbralo (no lo elimines, por si deseas restaurarlo):
+
+   ```bash
+   sudo mv /etc/X11/xorg.conf.d/30-touchpad-libinput.conf \
+           /etc/X11/xorg.conf.d/30-touchpad-libinput.conf.back
+   ```
+
+📘 **Explicación técnica:**
+El archivo `30-touchpad-libinput.conf` contiene una línea:
+
+```bash
+MatchIsTouchpad "on"
+```
+
+que hace que **libinput** intercepte todos los eventos del touchpad antes de que **mtrack** los procese.
+Al renombrarlo, Xorg deja de cargar libinput para el touchpad, permitiendo que **solo mtrack** maneje el dispositivo.
+
+---
+
+
+---
+
+## Crear el archivo de configuración `mtrack`
 
 El driver no funcionará hasta crear su archivo de configuración para Xorg.
 
@@ -42,8 +109,8 @@ sudo gedit /usr/share/X11/xorg.conf.d/50-mtrack.conf
 # para MacBook Pro 5,5 — MX Linux 23 Fluxbox
 # ===============================================
 # Versión revisada y comentada (por ChatGPT)
-# Basada en el tutorial original de int3ractive.com
-# y el README oficial del proyecto xf86-input-mtrack.
+# Basada en el tutorial original de Int3ractive https://int3ractive.com/blog/2018/make-the-best-of-macbook-touchpad-on-ubuntu/
+# y el README oficial del proyecto xf86-input-mtrack https://github.com/rynbrd/xf86-input-mtrack/blob/master/README.md
 #
 # Objetivo:
 #   - Movimiento fluido y natural del cursor
@@ -64,16 +131,16 @@ Section "InputClass"
     # --------------------------------------------
 
     # Perfil de aceleración:
-    #  0 = lineal, 1 = simple, 2 = polinómico (más natural).
+    #  0 = lineal, 1 = simple, 2 = polinómico (se  duplica la velocidad).
     Option "AccelerationProfile" "1"
 
     # Sensibilidad (velocidad del puntero)
     # Valores recomendados:
     #   0.5 = un poco más lenta que la predeterminada
     #   1.0 = valor base recomendado
-    #   1.5 = rápida y fluida, parecida a macOS
+    #   1.7 = rápida y fluida, parecida a macOS
     #   2.0 = muy rápida (útil para pantallas grandes)
-    Option "Sensitivity" "1.5"
+    Option "Sensitivity" "1.7"
 
     # --------------------------------------------
     # DETECCIÓN DE DEDOS Y PRESIÓN
@@ -112,7 +179,7 @@ Section "InputClass"
 
     # Desactiva arrastre por toque (preferimos tres dedos)
     Option "TapDragEnable" "true"
-    
+
     Option "TapDragTime" "350"
     Option "TapDragWait" "40"
     Option "TapDragDist" "200"
@@ -146,18 +213,18 @@ Section "InputClass"
     Option "ScrollSmooth" "true"
 
     # Botones virtuales para scroll vertical y horizontal
-    Option "ScrollUpButton" "5"
-    Option "ScrollDownButton" "4"
+    Option "ScrollUpButton" "4"
+    Option "ScrollDownButton" "5"
     Option "ScrollLeftButton" "7"
     Option "ScrollRightButton" "6"
 
     # Distancia que debes mover los dedos para que el scroll se active
     # Valores más altos = scroll más lento.
     # Ejemplo:
-    #   150 = sensible y rápido
-    #   250 = desplazamiento natural
-    #   400 = desplazamiento más largo y preciso
-    Option "ScrollDistance" "250"
+    #   70 = sensible y rápido
+    #   80 = desplazamiento natural
+    #   130 = desplazamiento más largo
+    Option "ScrollDistance" "80"
 
     # --------------------------------------------
     # GESTOS DE ARRASTRE Y DESLIZAMIENTO
@@ -204,23 +271,9 @@ Section "InputClass"
 EndSection
 ```
 
-Guarda el archivo (`Ctrl + O`, luego `Enter`, y `Ctrl + X` para salir).
+Guarda el archivo y cerrar.
 
----
-
-## 👥 3. Dar permisos de entrada al usuario
-
-El driver necesita acceso al grupo `input`:
-
-```bash
-sudo adduser $USER input
-```
-
-Cierra sesión y vuelve a entrar, o reinicia el sistema.
-
----
-
-## 🧠 4. Verificar que mtrack esté en uso
+## Verificar que mtrack esté en uso
 
 Ejecuta:
 
@@ -231,27 +284,34 @@ xinput list
 Busca tu touchpad, por ejemplo:
 
 ```
-Apple Inc. BCM5974
+bcm5974
 ```
 
 Luego:
 
 ```bash
-xinput list-props "Apple Inc. BCM5974"
+xinput list-props "bcm5974"
 ```
 
-Si ves opciones que comienzan con “mtrack”, está funcionando correctamente.
+Deberán aparecer varias opciones lo cual significa que está funcionando correctamente.
 
 ---
 
-## ✋ 5. Deshabilitar el touchpad mientras escribes con **dispad**
+## Deshabilitar el touchpad mientras escribes con **dispad**
 
 Cuando usas `mtrack`, el método estándar de “disable while typing” no funciona; para eso se usa el pequeño programa **dispad**, hecho por el mismo autor.
 
-### 🔹 Instalar dispad
+### Instalar dispad
+
+Instalar las dependencias:
 
 ```bash
 sudo apt install libconfuse-dev libxi-dev
+```
+
+y uno por un poner en la terminal:
+
+```bash
 cd /tmp
 git clone https://github.com/BlueDragonX/dispad.git
 cd dispad
@@ -262,11 +322,13 @@ sudo make install
 
 ---
 
-### 🔹 Crear el archivo de configuración `~/.dispad`
+### Crear el archivo de configuración `~/.dispad`
 
 ```bash
-nano ~/.dispad
+gedit ~/.dispad
 ```
+
+allí aparecerán unos valores por defecto que para mi están bien, pero si desea los puede editar así:
 
 Pega esto:
 
@@ -277,15 +339,15 @@ delay = 500
 
 **Explicación:**
 
-* `poll = 48` → cada cuánto revisa el teclado (en milisegundos).
+* `poll = 48` →  Cada cuánto revisa el teclado (en milisegundos).
 * `delay = 500` → tiempo que mantiene el touchpad desactivado después de escribir (0.5 segundos).
-  Puedes subirlo si el touchpad se activa muy rápido (por ejemplo 700 o 800).
+  En valores más altos el touchpad se activa muy rápido (por ejemplo 700 o 800 o 1000).
 
 ---
 
-### 🔹 Iniciar dispad automáticamente en Fluxbox
+### Iniciar dispad automáticamente en Fluxbox
 
-Ya que estás usando **Fluxbox**, la forma correcta es añadirlo en tu archivo de inicio:
+Si estás usando **Fluxbox** la forma correcta es añadirlo en tu archivo de inicio:
 
 ```bash
 nano ~/.fluxbox/startup
@@ -302,7 +364,7 @@ Guarda y cierra.
 
 ---
 
-### 🧪 Probar
+### Probar
 
 Reinicia tu sesión o tu equipo.
 
@@ -313,7 +375,7 @@ Reinicia tu sesión o tu equipo.
 
 ---
 
-## 🔧 6. Ajustes recomendados (para personalizar)
+## Ajustes recomendados (para personalizar)
 
 | Opción              | Efecto                                | Valor recomendado |
 | ------------------- | ------------------------------------- | ----------------- |
