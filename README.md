@@ -345,12 +345,17 @@ delay = 500
 
 ---
 
+
+### Iniciar dispad automáticamente en Linux
+
+Según su distribución Linux búsquen Google cómo añadir programas al inicio y agreguelo allí
+
 ### Iniciar dispad automáticamente en Fluxbox
 
 Si estás usando **Fluxbox** la forma correcta es añadirlo en tu archivo de inicio:
 
 ```bash
-nano ~/.fluxbox/startup
+gedit ~/.fluxbox/startup
 ```
 
 Y agregar esta línea **antes del `exec fluxbox`** (normalmente al final):
