@@ -205,26 +205,60 @@ Section "InputClass"
     # DESPLAZAMIENTO (SCROLL)
     # --------------------------------------------
 
-    # Duración e inercia del desplazamiento
+    # Duración e inercia del desplazamiento (300 mantiene el desplazamiento suave)
+    # deja que el scroll tenga inercia suave (ajústalo entre 250–400 según gusto)
     Option "ScrollCoastDuration" "300"
-    Option "ScrollCoastEnableSpeed" ".1"
+
+    # Velocidad mínima para iniciar el scroll
+    # controla la velocidad mínima del movimiento para que empiece el desplazamiento.
+    # Ejemplo:
+    # .1 algo alto
+    # .05 hace que empiece antes
+    Option "ScrollCoastEnableSpeed" ".05"
 
     # Activar desplazamiento suave (natural)
     Option "ScrollSmooth" "true"
 
-    # Botones virtuales para scroll vertical y horizontal
-    Option "ScrollUpButton" "4"
-    Option "ScrollDownButton" "5"
-    Option "ScrollLeftButton" "7"
-    Option "ScrollRightButton" "6"
-
-    # Distancia que debes mover los dedos para que el scroll se active
-    # Valores más altos = scroll más lento.
+    # Distancia que debes mover los dedos para que el scroll se active (Sensibilidad al movimiento inicial)
+    # Valores más altos = scroll se activa en más tiempo.
+    # mientras más bajo, más rápido reacciona el gesto. 60 da respuesta inmediata como en macOS
     # Ejemplo:
-    #   70 = sensible y rápido
-    #   80 = desplazamiento natural
+    #   60 = sensible y rápido
+    #   80 = desplazamiento sensible
     #   130 = desplazamiento más largo
-    Option "ScrollDistance" "80"
+    Option "ScrollDistance" "60"
+
+    # ----------------------------------------------------------
+    # BOTONES VIRTUALES PARA EL SCROLL (rueda del ratón)
+    # ----------------------------------------------------------
+    # El driver mtrack convierte los gestos de dos dedos en
+    # "clics virtuales" de botones. Xorg interpreta estos botones
+    # como los movimientos de la rueda de un ratón tradicional.
+    #
+    # Tabla de equivalencias en Xorg:
+    #   Botón 1 = clic izquierdo
+    #   Botón 2 = clic del medio
+    #   Botón 3 = clic derecho
+    #   Botón 4 = scroll hacia arriba
+    #   Botón 5 = scroll hacia abajo
+    #   Botón 6 = scroll hacia la derecha
+    #   Botón 7 = scroll hacia la izquierda
+    #
+    # Cuando mueves dos dedos:
+    #   - hacia arriba: se envían eventos del botón 4
+    #   - hacia abajo:  se envían eventos del botón 5
+    #   - hacia la izq.: se envían eventos del botón 7
+    #   - hacia la der.: se envían eventos del botón 6
+    #
+    # Estos valores (4–7) son estándar en Xorg y no deben cambiarse
+    # salvo que desees reasignar los gestos a otras funciones
+    # (por ejemplo: botones 8/9 para "atrás" o "adelante" en navegadores).
+    #
+    # ----------------------------------------------------------
+    Option "ScrollUpButton"    "4"   # Gesto de dos dedos hacia arriba → scroll arriba
+    Option "ScrollDownButton"  "5"   # Gesto de dos dedos hacia abajo  → scroll abajo
+    Option "ScrollLeftButton"  "7"   # Gesto de dos dedos a la izquierda → scroll izquierda
+    Option "ScrollRightButton" "6"   # Gesto de dos dedos a la derecha  → scroll derecha
 
     # --------------------------------------------
     # GESTOS DE ARRASTRE Y DESLIZAMIENTO
